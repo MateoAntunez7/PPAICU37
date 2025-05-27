@@ -35,8 +35,6 @@ namespace PPAICU37
             Ordenes = new List<OrdenDeInspeccion>(); // Esta se llenará dinámicamente
             _estaciones = new List<EstacionSismologica>();
             CargarDatosDePrueba();
-            _sesionActual = new Sesion();
-
         }
 
         private void CargarDatosDePrueba()
@@ -120,10 +118,7 @@ namespace PPAICU37
 
         public Usuario buscarUsuario(string nombreUsuario, string contrasena)
         {
-            Empleado empleadoBuscado = _sesionActual.getUsuario().getEmpleado();
-
-            return empleadoBuscado;
-
+            return _usuariosRegistrados.FirstOrDefault(u => u.NombreUsuario == nombreUsuario && u.Contrasena == contrasena);
         }
 
         public void buscarOrdenInspeccion() // Paso 2 CU
@@ -137,7 +132,7 @@ namespace PPAICU37
             // El CU dice "todas las órdenes de inspección del RI que están en estado completamente realizadas" [cite: 2]
             // Asumimos que el RI es el ResponsableLogueado.
             Ordenes = Ordenes
-                .Where(o => o.EstadoActual.esCompletamenteRealizada() && o.esDeEmpleado(ResponsableLogueado)) // El filtro por empleado es opcional según interpretación del CU.
+                .Where(o => o.EstadoActual.esCompletamenteRealizada() /*&& o.esDeEmpleado(ResponsableLogueado)*/) // El filtro por empleado es opcional según interpretación del CU.
                 .ToList();
             ordenarPorFecha(); // CU: "ordenadas por fecha de finalización" [cite: 2]
                                // Console.WriteLine($"DEBUG: Encontradas {Ordenes.Count} órdenes completamente realizadas para {ResponsableLogueado.NombreUsuario}."); // Para depuración
@@ -217,11 +212,11 @@ namespace PPAICU37
 
         public Estado buscarEstadoCerrado()
         {
-            return _estadosPosibles.FirstOrDefault(e => e.NombreEstado == "Cerrada" && e.esAmbitoOrden());
+            return _estadosPosibles.FirstOrDefault(e => e.NombreEstado == "Cerrada" && e.Ambito == "OrdenInspeccion");
         }
         public Estado buscarEstadoFueraServicio()
         {
-            return _estadosPosibles.FirstOrDefault(e => e.NombreEstado == "Fuera de Servicio" && e.esAmbitoSismografo());
+            return _estadosPosibles.FirstOrDefault(e => e.NombreEstado == "Fuera de Servicio" && e.Ambito == "Sismografo");
         }
 
         public DateTime getFechaHoraActual()
