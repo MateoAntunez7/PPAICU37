@@ -35,8 +35,6 @@ namespace PPAICU37
             Ordenes = new List<OrdenDeInspeccion>(); // Esta se llenará dinámicamente
             _estaciones = new List<EstacionSismologica>();
             CargarDatosDePrueba();
-            _sesionActual = null;
-            ResponsableLogueado = null; // Inicialmente no hay usuario logueado
         }
 
         private void CargarDatosDePrueba()
@@ -91,14 +89,6 @@ namespace PPAICU37
             ordenesGlobales.Add(new OrdenDeInspeccion { NumeroOrden = 103, FechaHoraInicio = DateTime.Now.AddDays(-2), EstadoActual = estadoPendiente, Responsable = empleado1, SismografoAfectado = sismo1 });
             ordenesGlobales.Add(new OrdenDeInspeccion { NumeroOrden = 104, FechaHoraInicio = DateTime.Now.AddDays(-15), FechaHoraFinalizacion = DateTime.Now.AddDays(-12), EstadoActual = estadoRealizada, Responsable = empleado2, SismografoAfectado = sismo1 });
 
-            // Usuarios
-            var usuarioLogueado = new Usuario
-            {
-                NombreUsuario = "jperez",
-                Contrasena = "123",
-                EmpleadoAsociado = empleado1
-            };
-
             // Asignar las órdenes a la lista que usa el controlador para las operaciones.
             // En un escenario real, estas se obtendrían de una fuente de datos.
             this.Ordenes = ordenesGlobales;
@@ -110,19 +100,14 @@ namespace PPAICU37
             {
                 // Simular login (Paso 2 del CU)
                 // En una app real, la UI de login llamaría a buscarUsuario o iniciarSesion.
-
-                var usuarioLogueado = login("jperez", "123"); // Simula login de jperez
-
+                var usuarioLogueado = buscarUsuario("jperez", "123"); // Simula login de jperez
                 if (usuarioLogueado != null)
                 {
                     _sesionActual = new Sesion();
                     _sesionActual.Iniciar(usuarioLogueado);
-
-                    ResponsableLogueado = buscarUsuario(_sesionActual);
+                    ResponsableLogueado = _sesionActual.getUsuario().getEmpleado();
                     // Console.WriteLine($"DEBUG: Usuario {ResponsableLogueado.NombreUsuario} logueado."); // Para depuración
-
                     buscarOrdenInspeccion(); // Carga las órdenes elegibles
-
                     return true;
                 }
                 // Console.WriteLine($"DEBUG: Falla de login simulado."); // Para depuración
@@ -131,13 +116,7 @@ namespace PPAICU37
             return false;
         }
 
-
-        public Usuario login(string nombreUsuario, string contrasena)
-        {
-            return _usuariosRegistrados.FirstOrDefault(u => u.NombreUsuario == nombreUsuario && u.Contrasena == contrasena);
-        }
-
-        public Empleado buscarUsuario(Sesion _sesionActual)
+        public Usuario buscarUsuario(string nombreUsuario, string contrasena)
         {
             return _usuariosRegistrados.FirstOrDefault(u => u.NombreUsuario == nombreUsuario && u.Contrasena == contrasena);
         }
@@ -337,7 +316,6 @@ namespace PPAICU37
             MotivoSeleccionado = null;
             MotivosAgregados.Clear();
             ComentarioMotivoIngresado = string.Empty;
-            buscarOrdenInspeccion();
             // ResponsableLogueado y SesionActual podrían persistir si el usuario sigue en la app.
             // Ordenes se recargaría con buscarOrdenInspeccion() si es necesario para una nueva operación.
             // Console.WriteLine("DEBUG: Fin del Caso de Uso. Estado del controlador parcialmente reseteado."); // Para depuración
